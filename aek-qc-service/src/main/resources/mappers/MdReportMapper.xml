@@ -1,0 +1,225 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.aek.ebey.qc.mapper.MdReportMapper">
+
+	<!-- 通用查询映射结果 -->
+	<resultMap id="BaseResultMap" type="com.aek.ebey.qc.model.MdReport">
+		<id column="id" property="id" />
+		<result column="tenant_id" property="tenantId" />
+		<result column="md_num" property="mdNum" />
+		<result column="md_archive_num" property="mdArchiveNum" />
+		<result column="status" property="status" />
+		<result column="contact_number" property="contactNumber" />
+		<result column="check_according" property="checkAccording" />
+		<result column="environment_condition" property="environmentCondition" />
+		<result column="deviation_record" property="deviationRecord" />
+		<result column="check_instrument_name" property="checkInstrumentName" />
+		<result column="check_instrument_spec" property="checkInstrumentSpec" />
+		<result column="check_instrument_producer" property="checkInstrumentProducer" />
+		<result column="check_type" property="checkType" />
+		<result column="check_result" property="checkResult" />
+		<result column="check_time" property="checkTime" />
+		<result column="check_by" property="checkBy" />
+		<result column="check_name" property="checkName" />
+		<result column="verify_result" property="verifyResult" />
+		<result column="verify_time" property="verifyTime" />
+		<result column="verify_by" property="verifyBy" />
+		<result column="verify_name" property="verifyName" />
+		<result column="verify_remark" property="verifyRemark" />
+		<result column="appearance_work_check" property="appearanceWorkCheck" />
+		<result column="maximum_allowable_error" property="maximumAllowableError" />
+		<result column="create_by" property="createBy" />
+		<result column="create_time" property="createTime" />
+		<result column="update_by" property="updateBy" />
+		<result column="update_time" property="updateTime" />
+		<result column="del_flag" property="delFlag" />
+	</resultMap>
+
+    <!-- 通用查询结果列 -->
+    <sql id="Base_Column_List">
+        id, tenant_id AS tenantId, md_num AS mdNum, md_archive_num AS mdArchiveNum, status, contact_number AS contactNumber, check_according AS checkAccording, environment_condition AS environmentCondition, deviation_record AS deviationRecord, check_instrument_name AS checkInstrumentName, check_instrument_spec AS checkInstrumentSpec, check_instrument_producer AS checkInstrumentProducer, check_type AS checkType, check_result AS checkResult, check_time AS checkTime, check_by AS checkBy,check_name  AS checkName,verify_result AS verifyResult, verify_time AS verifyTime, verify_by AS verifyBy,verify_name AS verifyName,verify_remark AS verifyRemark, appearance_work_check AS appearanceWorkCheck, maximum_allowable_error AS maximumAllowableError, create_by AS createBy, create_time AS createTime, update_by AS updateBy, update_time AS updateTime, del_flag AS delFlag
+    </sql>
+    
+    <select id="getMdAssetsExist" resultType="long">
+    	SELECT
+			a.assets_id assetsId
+		FROM
+			md_report_assets a
+		LEFT JOIN md_report r ON a.md_report_id = r.id
+		WHERE r.del_flag = 0
+		AND r. STATUS IN (1, 2)
+		AND r.tenant_id = #{tenantId}
+		AND a.del_flag=0   	
+    </select>
+    
+    <update id="updateReport">
+    	UPDATE 
+			md_report
+		SET 
+			status = #{mdReport.status},
+			contact_number = #{mdReport.contactNumber},
+			check_according = #{mdReport.checkAccording},
+			environment_condition = #{mdReport.environmentCondition},
+			deviation_record = #{mdReport.deviationRecord},
+			check_instrument_name = #{mdReport.checkInstrumentName},
+			check_instrument_spec = #{mdReport.checkInstrumentSpec},
+			check_instrument_producer = #{mdReport.checkInstrumentProducer},
+			check_result = #{mdReport.checkResult},
+			check_time = #{mdReport.checkTime},
+			check_name = #{mdReport.checkName},
+			appearance_work_check = #{mdReport.appearanceWorkCheck},
+			maximum_allowable_error = #{mdReport.maximumAllowableError},
+			update_by = #{mdReport.updateBy},
+			update_time = #{mdReport.updateTime}
+		WHERE
+			id = #{mdReport.id}
+		AND del_flag=0
+    </update>
+    
+    <select id="getReportTemplateItemIds" resultType="long">
+    	SELECT
+			id
+		FROM
+			md_report_template_item
+		WHERE
+			report_template_id = (SELECT id FROM md_report_template WHERE md_report_id = #{mdReportId})	
+    </select>
+    
+    <!--质控填报列表查询-->
+    <select id="getApplyMdReportPage" resultType="com.aek.ebey.qc.model.vo.MdReportPageVO">
+    	SELECT
+			r.id id,
+			r.md_num mdNum,
+			r.check_time checkTime,
+			r.`status`,
+			a.assets_num assetsNum,
+			a.assets_name assetsName,
+			a.assets_spec assetsSpec,
+			a.dept_id deptId,
+			a.dept_name deptName
+			FROM
+				md_report r
+			LEFT JOIN md_report_assets a ON r.id = a.md_report_id
+			WHERE
+				r.del_flag = 0
+			AND a.del_flag=0
+			AND r.tenant_id=#{user.tenantId}
+			AND r.create_by=#{user.id}
+			<if test="q.keyword !=null and q.keyword !=''">
+			AND (r.md_num like CONCAT('%',#{q.keyword},'%') OR a.assets_num like CONCAT('%',#{q.keyword},'%') OR a.assets_name LIKE CONCAT('%' ,#{q.keyword}, '%'))	
+			</if>	
+			<if test="q.checkTimeStart != null and q.checkTimeStart !=''">
+				<![CDATA[
+					AND r.create_time >= #{q.checkTimeStart}
+				]]>
+			</if>
+			<if test="q.checkTimeEnd != null and q.checkTimeEnd !=''">
+				<![CDATA[
+					AND r.create_time <= #{q.checkTimeEnd}
+				]]>	
+			</if>
+			<if test="q.deptId != null">
+			AND a.dept_id=#{q.deptId}
+			</if>
+			<if test="q.status != null">
+			AND r.status=#{q.status}
+			</if>
+			ORDER BY r.`status` ASC,r.create_time DESC
+    </select>
+    
+    
+    <!--质控审核列表查询-->
+    <select id="getVerifyMdReportPage" resultType="com.aek.ebey.qc.model.vo.MdReportPageVO">
+    	SELECT
+			r.id id,
+			r.md_num mdNum,
+			r.check_by checkBy,
+			r.check_name checkName,
+			r.check_time checkTime,
+			CASE r.`status` WHEN 4 THEN 3 WHEN 3 THEN 4 WHEN 2 THEN 2 END `status`,
+			a.assets_num assetsNum,
+			a.assets_name assetsName,
+			a.assets_spec assetsSpec,
+			a.dept_id deptId,
+			a.dept_name deptName
+			FROM
+				md_report r
+			LEFT JOIN md_report_assets a ON r.id = a.md_report_id
+			WHERE
+				r.del_flag = 0
+			AND a.del_flag=0
+			AND r.tenant_id=#{user.tenantId}
+			<if test="q.keyword !=null and q.keyword !=''">
+			AND (r.md_num like CONCAT('%',#{q.keyword},'%') OR a.assets_num like CONCAT('%',#{q.keyword},'%') OR a.assets_name LIKE CONCAT('%' ,#{q.keyword}, '%'))	
+			</if>	
+			<if test="q.checkTimeStart != null and q.checkTimeStart !=''">
+			<![CDATA[
+				AND r.create_time >= #{q.checkTimeStart}
+			]]>
+			</if>
+			<if test="q.checkTimeEnd != null and q.checkTimeEnd !=''">
+				<![CDATA[
+					AND r.create_time <= #{q.checkTimeEnd}
+				]]>	
+			</if>
+			<if test="q.deptId != null">
+			AND a.dept_id=#{q.deptId}
+			</if>
+			<if test="q.status == null">
+			AND r.status IN(2,3,4)
+			</if>
+			<if test="q.status != null">
+			AND r.status= #{q.status}
+			</if>
+			ORDER BY `status` ASC,r.create_time ASC
+    </select>
+    
+    <!--质控档案列表查询-->
+    <select id="getArchiveMdReportPage" resultType="com.aek.ebey.qc.model.vo.MdReportPageVO">
+    	SELECT
+			r.id id,
+			r.md_archive_num mdArchiveNum,
+			r.check_by checkBy,
+			r.check_name checkName,
+			r.check_time checkTime,
+			r.verify_by verifyBy,
+			r.verify_name verifyName,
+			r.verify_time verifyTime,
+			r.`status`,
+			a.assets_num assetsNum,
+			a.assets_name assetsName,
+			a.assets_spec assetsSpec,
+			a.dept_id deptId,
+			a.dept_name deptName
+			FROM
+				md_report r
+			LEFT JOIN md_report_assets a ON r.id = a.md_report_id
+			WHERE
+				r.del_flag = 0
+			AND a.del_flag=0
+			AND r.tenant_id=#{user.tenantId}
+			AND r.status= 3
+			<if test="q.keyword !=null and q.keyword !=''">
+			AND (r.md_archive_num like CONCAT('%',#{q.keyword},'%') OR a.assets_num like CONCAT('%',#{q.keyword},'%') OR a.assets_name LIKE CONCAT('%' ,#{q.keyword}, '%'))	
+			</if>	
+			<if test="q.checkTimeStart != null and q.checkTimeStart !=''">
+			<![CDATA[
+				AND r.create_time >= #{q.checkTimeStart}
+			]]>
+			</if>
+			<if test="q.checkTimeEnd != null and q.checkTimeEnd !=''">
+				<![CDATA[
+					AND r.create_time <= #{q.checkTimeEnd}
+				]]>	
+			</if>
+			<if test="q.deptId != null">
+			AND a.dept_id=#{q.deptId}
+			</if>
+			ORDER BY verifyTime DESC
+    </select>
+    
+    <select id="count" resultType="int">
+    	SELECT COUNT(1) FROM md_report WHERE del_flag=0 AND tenant_id=#{tenantId} AND `status`=2
+    </select>
+    
+</mapper>

@@ -1,0 +1,207 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.aek.ebey.qc.mapper.QcImplementMapper">
+
+	<!-- 通用查询映射结果 -->
+	<resultMap id="BaseResultMap" type="com.aek.ebey.qc.model.QcImplement">
+		<id column="id" property="id" />
+		<result column="report_no" property="reportNo" />
+		<result column="tenant_id" property="tenantId" />
+		<result column="next_time" property="nextTime" />
+		<result column="paln_id" property="palnId" />
+		<result column="actual_start_date" property="actualStartDate" />
+		<result column="actual_end_date" property="actualEndDate" />
+		<result column="create_date" property="createDate" />
+		<result column="plan_date" property="planDate" />
+		<result column="condition" property="condition" />
+		<result column="analysis" property="analysis" />
+		<result column="suggestion" property="suggestion" />
+		<result column="status" property="status" />
+		<result column="is_check" property="isCheck" />
+		<result column="charge_id" property="chargeId" />
+		<result column="charge_name" property="chargeName" />
+	</resultMap>
+
+    <!-- 通用查询结果列 -->
+    <sql id="Base_Column_List">
+        id, report_no AS reportNo,tenant_id AS tenantId,next_time AS nextTime,paln_id AS palnId, actual_start_date AS actualStartDate, actual_end_date AS actualEndDate, plan_date AS planDate, create_date AS createDate,condition, analysis, status,suggestion,charge_id AS chargeId, charge_name AS chargeName, is_check AS isCheck
+    </sql>
+    <update id="batchUpdate" parameterType="java.util.List" >  
+    	<foreach collection="list" item="item" index="index" separator=";">  
+   		 UPDATE qc_assets set result = #{item.result} , remarks = #{item.remarks},result_status = #{item.resultStatus} WHERE implement_id = #{item.implementId}  and assets_id=#{item.assetsId}
+    	</foreach>  
+	</update> 
+	 <update id="batchUpdate2" parameterType="java.util.List" >  
+    	<foreach collection="list" item="item" index="index" separator=";">  
+   		 UPDATE qc_assets set result = #{item.result} , remarks = #{item.remarks},result_status = #{item.resultStatus},im_status = #{item.imStatus}  WHERE implement_id = #{item.implementId}  and assets_id=#{item.assetsId}
+    	</foreach>  
+	</update> 
+	
+	 <select id="getRecord" resultType="com.aek.ebey.qc.request.QcPlanRecordResponse">
+    
+   	SELECT
+   	
+  		a.id,
+  		a.plan_date AS planDate,
+  		a.actual_start_date AS actualStartDate,
+  		a.actual_end_date AS actualEndDate
+	FROM 
+		qc_implement a WHERE a.status=2
+		
+		<if test="q.id != null and q.id !=''">
+			and a.paln_id = #{q.id}
+		</if>
+		ORDER BY a.plan_date DESC,a.id
+    
+    </select>
+    
+     <select id="check" resultType="int">
+    
+   	SELECT
+   	
+  		a.status
+	FROM 
+		qc_implement a 
+		
+		<if test="q.id != null and q.id !=''">
+			and a.id = #{q.id}
+		</if>
+    </select>
+    <select id="searchReport" resultType="com.aek.ebey.qc.request.QcReportResponse">
+    	SELECT
+  		a.id AS id,
+  		a.report_no AS reportNo,
+  		b.name AS name,
+  		b.plan_type AS planType,
+  		b.plan_cycle AS planCycle,
+  		b.cycle_type AS cycleType, 
+  		a.charge_name AS chargeName,
+  		a.actual_end_date AS endDate,
+  		a.is_check status
+  
+	FROM 
+		qc_implement a inner join qc_plan b  on a.paln_id=b.id and a.status=2
+		<if test="user.tenantId != null">
+			and b.tenant_id = #{user.tenantId}
+		</if>
+		<if test="q.status != null and q.status != ''">
+			and a.is_check = #{q.status}
+		</if>
+		<if test="q.startDate != null and q.startDate !=''">
+			<![CDATA[
+			and a.actual_end_date >= #{q.startDate}
+			]]>
+		</if>
+		<if test="q.endDate != null and q.endDate !=''">
+			<![CDATA[
+			and a.actual_end_date <= #{q.endDate}
+			]]>
+		</if>
+		<if test="q.keyword != null and q.keyword != ''">
+			and (b.name like CONCAT('%',#{q.keyword},'%') OR a.report_no LIKE CONCAT('%' ,#{q.keyword}, '%')) 
+		</if>
+		ORDER BY a.actual_end_date DESC,a.id
+    
+    </select>
+    
+    <!-- 年度巡检执行率 -->
+    <select id="selectByCondtion" resultType="com.aek.ebey.qc.request.QcOverView">
+       SELECT 
+			tmp.tenantId,
+	  		(CASE WHEN (tmp.inspectionPlanTotalYear is not null AND tmp.inspectionPlanTotalYear !=0) 
+				  THEN FORMAT((tmp.inspectionPlanTotalYearFact/tmp.inspectionPlanTotalYear)*100,2) ELSE 0 END
+    		) AS inspectionRateYear
+		FROM 
+		(	SELECT 
+       			p.tenant_id tenantId,
+			 	count(1) as inspectionPlanTotalYear, 
+       			SUM(CASE WHEN date(p.actual_start_date) &lt;= date(p.plan_date) THEN 1 else 0 end) AS inspectionPlanTotalYearFact
+    		FROM qc_implement p 
+			WHERE p.status=2
+				  <if test="q.startDate == null">
+				  	AND p.create_date  &lt;=   date_sub(curdate(),interval 0 day)
+				  	AND p.create_date &gt;= DATE_SUB(CURDATE(),INTERVAL dayofyear(now())-1 DAY) 
+				  </if>
+    		GROUP BY p.tenant_id
+		) tmp
+    </select>
+    
+    <select id="selectByCondtion2" resultType="com.aek.ebey.qc.request.QcOverView">
+    
+	   	select 
+	   	p.tenant_id tenantId, 
+	   	date_sub(now(),interval 1 day) countDate,
+	   	count(1) inspectionPlanTotalYear ,
+	   	now() countTime 
+	   	from
+	    qc_implement p 
+	    where p.`status`=2
+	     <if test="q.startDate != null and q.startDate != '' ">
+			<![CDATA[
+	   		and p.create_date  <=   #{q.endDate}
+	   		and p.create_date >=  #{q.startDate}
+	   		and p.actual_start_date <=p.plan_date 
+	   		]]>
+		</if>
+		 <if test="q.startDate == null">
+			<![CDATA[
+	   		and p.create_date  <=   date_sub(curdate(),interval 0 day)
+	   		and p.create_date >= DATE_SUB(CURDATE(),INTERVAL dayofyear(now())-1 DAY)
+	   		and p.actual_start_date <=p.plan_date 
+	   		]]>
+		</if>
+	   	group by p.tenant_id;
+
+    </select>
+    
+    <!-- 年度巡检设备总数 -->
+    <select id="selectCountQcAssetsYear" resultType="com.aek.ebey.qc.request.QcOverView">
+	    SELECT
+			p.tenant_id tenantId,
+			date_sub(now(), INTERVAL 1 DAY) countDate,
+			count(1) inspectionTotalYear,
+			now() countTime
+		FROM qc_assets p
+		WHERE
+			<if test="q.startDate != null and q.startDate != '' ">
+					<![CDATA[
+			   		p.create_time  <=   #{q.endDate}
+			   		and p.create_time >=  #{q.startDate}
+			   		]]>
+			</if>
+			<if test="q.startDate == null">
+				<![CDATA[
+				p.create_time <= date_sub(curdate(), INTERVAL 0 DAY)
+				AND p.create_time >= DATE_SUB(CURDATE(),INTERVAL dayofyear(now()) - 1 DAY)
+				]]>
+			</if>
+		GROUP BY p.tenant_id
+    </select>
+    
+    <!-- 月度巡检设备总数 -->
+    <select id="selectCountQcAssets" resultType="com.aek.ebey.qc.request.QcMounth">
+	   	SELECT 
+		   	q.tenant_id tenantId, 
+		   	date_format(date_sub(now(),interval 1 day),'%Y-%m') countMonth,
+		   	count(1) inspectionAssetsTotal ,
+		   	now() countTime,
+		   	now() updateTime
+		   	from  
+		   	qc_assets q inner join  qc_implement c on q.implement_id=c.id and c.`status`=2
+	   	WHERE 
+		   	<if test="q.startDate != null and q.startDate != '' ">
+				<![CDATA[
+				q.create_time  <=   #{q.endDate}
+		   		and q.create_time >=#{q.startDate}
+		   		]]>
+			</if>
+			<if test="q.startDate == null">
+				<![CDATA[
+		   	 	q.create_time  <=   date_sub(curdate(),interval 0 day)
+		   		and q.create_time >= date_add(curdate(),interval -day(curdate())+1 day)
+			 ]]>
+			</if>
+	   	GROUP BY q.tenant_id
+    </select>
+    
+</mapper>

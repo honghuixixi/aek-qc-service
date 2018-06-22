@@ -1,0 +1,69 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.aek.ebey.qc.mapper.MtTemplateMapper">
+
+	<!-- 通用查询映射结果 -->
+	<resultMap id="BaseResultMap" type="com.aek.ebey.qc.model.MtTemplate">
+		<id column="id" property="id" />
+		<result column="tenant_id" property="tenantId" />
+		<result column="name" property="name" />
+		<result column="type" property="type" />
+		<result column="remarks" property="remarks" />
+		<result column="enable" property="enable" />
+		<result column="del_flag" property="delFlag" />
+		<result column="create_time" property="createTime" />
+		<result column="update_time" property="updateTime" />
+	</resultMap>
+
+    <!-- 通用查询结果列 -->
+    <sql id="Base_Column_List">
+        id, tenant_id AS tenantId, name, type, remarks, enable, del_flag AS delFlag, create_time AS createTime, update_time AS updateTime
+    </sql>
+    
+    <!-- 根据模版名称查模版 -->
+    <select id="getByName" resultMap="BaseResultMap">
+    	SELECT * FROM `mt_template` WHERE tenant_id=#{user.tenantId} AND `name`=#{name} AND del_flag=0
+    </select>
+    
+    <select id="getByItemName" resultType="com.aek.ebey.qc.model.MtTemplateItem">
+    	SELECT * FROM `mt_template_item` WHERE item_name=#{itemName} AND del_flag=0 AND template_id=#{templateId}
+    </select>
+    
+    <select id="getByPage" resultMap="BaseResultMap">
+    	SELECT
+			*
+		FROM
+	 		mt_template
+		WHERE
+			del_flag = 0	
+		<if test="query.enable !=null">
+			AND enable = #{query.enable}
+		</if>
+		<if test="query.keyword !=null and query.keyword !=''">
+			AND name LIKE CONCAT('%',#{query.keyword},'%')
+		</if>
+		AND (tenant_id IS NULL OR tenant_id = #{user.tenantId})
+		ORDER BY
+			type,id DESC
+    </select>
+    
+    <select id="getList" resultType="com.aek.ebey.qc.model.vo.MtTemplateVO">
+    	SELECT
+			*
+		FROM
+	 		mt_template
+		WHERE
+			del_flag = 0 AND enable = 1
+		<if test="keyword !=null and keyword !=''">
+			AND name LIKE CONCAT('%',#{keyword},'%')
+		</if>
+		AND (tenant_id IS NULL OR tenant_id = #{user.tenantId})
+		ORDER BY
+			type,id DESC
+    </select>
+    
+    <select id="getSysItems" resultType="com.aek.ebey.qc.model.MtTemplateItemCommon">
+    	SELECT * FROM `mt_template_item_common` WHERE del_flag=0
+    </select>
+    
+</mapper>

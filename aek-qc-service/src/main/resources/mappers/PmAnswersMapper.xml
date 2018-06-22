@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.aek.ebey.qc.mapper.PmAnswersMapper">
+
+	<!-- 通用查询映射结果 -->
+	<resultMap id="BaseResultMap" type="com.aek.ebey.qc.model.PmAnswers">
+		<id column="id" property="id" />
+		<result column="implement_id" property="implementId" />
+		<result column="project_id" property="projectId" />
+		<result column="project_name" property="projectName" />
+	</resultMap>
+
+    <!-- 通用查询结果列 -->
+    <sql id="Base_Column_List">
+        id, implement_id AS implementId, project_id AS projectId, project_name AS projectName
+    </sql>
+    
+    <select id="selectAnswerByImplementId" resultType="int">
+    
+    select count(1) from pm_answers_option where answer is null and implement_id=#{id}
+    
+    </select>
+</mapper>

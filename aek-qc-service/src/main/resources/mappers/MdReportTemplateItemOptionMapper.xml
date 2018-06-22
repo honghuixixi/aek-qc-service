@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.aek.ebey.qc.mapper.MdReportTemplateItemOptionMapper">
+
+	<!-- 通用查询映射结果 -->
+	<resultMap id="BaseResultMap" type="com.aek.ebey.qc.model.MdReportTemplateItemOption">
+		<id column="id" property="id" />
+		<result column="source_item_option_id" property="sourceItemOptionId" />
+		<result column="item_id" property="itemId" />
+		<result column="name" property="name" />
+		<result column="sort" property="sort" />
+		<result column="create_time" property="createTime" />
+		<result column="update_time" property="updateTime" />
+	</resultMap>
+
+    <!-- 通用查询结果列 -->
+    <sql id="Base_Column_List">
+        id,source_item_option_id AS sourceItemOptionId, item_id AS itemId, name, sort, create_time AS createTime, update_time AS updateTime
+    </sql>
+    
+    <select id="getChildItemOptions" resultType="com.aek.ebey.qc.model.vo.MdReportTemplateItemOptionVO">
+    	SELECT
+			id,
+			item_id itemId,
+			`name`,
+			sort
+		FROM
+			md_report_template_item_option
+		WHERE
+			item_id = #{parentItemId}
+		ORDER BY
+			sort ASC
+    </select>
+    
+</mapper>

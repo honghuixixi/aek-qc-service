@@ -1,0 +1,71 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.aek.ebey.qc.mapper.MdReportTemplateMapper">
+
+	<!-- 通用查询映射结果 -->
+	<resultMap id="BaseResultMap" type="com.aek.ebey.qc.model.MdReportTemplate">
+		<id column="id" property="id" />
+		<result column="source_template_id" property="sourceTemplateId" />
+		<result column="md_report_id" property="mdReportId" />
+		<result column="name" property="name" />
+		<result column="remarks" property="remarks" />
+		<result column="enable" property="enable" />
+		<result column="create_by" property="createBy" />
+		<result column="create_time" property="createTime" />
+		<result column="update_by" property="updateBy" />
+		<result column="update_time" property="updateTime" />
+	</resultMap>
+
+    <!-- 通用查询结果列 -->
+    <sql id="Base_Column_List">
+        id, md_report_id AS mdReportId, name, remarks, enable, create_by AS createBy, create_time AS createTime, update_by AS updateBy, update_time AS updateTime,source_template_id AS sourceTemplateId
+    </sql>
+    
+    <select id="getReportTemplate" resultType="com.aek.ebey.qc.model.vo.MdReportTemplateDetailVO">
+    	SELECT
+			id,
+			`name`,
+			remarks,
+			`enable`
+			FROM
+				md_report_template
+			WHERE
+				md_report_id = #{ReportId}
+    </select>
+    
+    <!-- 一级项目查询 -->
+    <select id="getReportTemplateItemList" resultType="com.aek.ebey.qc.model.vo.MdReportTemplateItemVO">
+    	SELECT
+			id,
+			report_template_id templateId,
+			`name`,
+			remarks,
+			input_type inputType,
+			select_type selectType,
+			sort
+			FROM
+				md_report_template_item
+			WHERE
+			 	parent_id is NULL AND report_template_id = #{templateId} ORDER BY sort ASC
+    </select>
+    
+   	<!-- 二级项目查询 -->
+    <select id="getReportTemplateChidItemList" resultType="com.aek.ebey.qc.model.vo.MdReportTemplateChildItemVO">
+    	SELECT
+			id,
+			parent_id parentId,
+			`name`,
+			remarks,
+			input_type inputType,
+			`columns`,
+			cross_row crossRow,
+			type,
+			sort
+			FROM
+				md_report_template_item
+			WHERE
+				parent_id = #{parentItemId}
+			ORDER BY sort ASC
+    </select>
+    
+</mapper>

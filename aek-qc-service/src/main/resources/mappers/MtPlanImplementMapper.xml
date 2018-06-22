@@ -1,0 +1,54 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.aek.ebey.qc.mapper.MtPlanImplementMapper">
+
+	<!-- 通用查询映射结果 -->
+	<resultMap id="BaseResultMap" type="com.aek.ebey.qc.model.MtPlanImplement">
+		<id column="id" property="id" />
+		<result column="plan_id" property="planId" />
+		<result column="administrator" property="administrator" />
+		<result column="rate" property="rate" />
+		<result column="last_implement_time" property="lastImplementTime" />
+		<result column="next_implement_time" property="nextImplementTime" />
+		<result column="create_time" property="createTime" />
+	</resultMap>
+
+    <!-- 通用查询结果列 -->
+    <sql id="Base_Column_List">
+        id, plan_id AS planId, administrator, rate, last_implement_time AS lastImplementTime, next_implement_time AS nextImplementTime, create_time AS createTime
+    </sql>
+    
+    <!-- 分页查询实施列表数据 -->
+    <select id="getMtPlanImplementPage" resultType="com.aek.ebey.qc.request.MtPlanImplementResponse">
+    	SELECT 
+    		i.id,
+    		p.rate,
+    		i.last_implement_time AS lastImplementTime,
+    		i.next_implement_time AS nextImplementTime,
+    		i.administrator,
+    		a.assets_id AS assetsId,
+    		a.assets_name AS assetsName,
+    		a.assets_num AS assetsNum,
+    		a.assets_spec AS assetsSpec,
+    		a.assets_dept_id AS assetsDeptId,
+    		a.assets_dept_name AS assetsDeptName,
+    		a.hospital_assets_num AS hospitalAssetsNum
+	   FROM mt_plan_implement i
+	   LEFT JOIN mt_plan p on i.plan_id = p.id
+       LEFT JOIN mt_plan_assets a on p.id = a.plan_id
+	   WHERE 
+	   <!-- 计划启用 -->
+	   p.enable = 1 
+	   <!-- 当前机构 -->
+	   AND p.tenant_id = #{user.tenantId}
+	   <!-- 当前用户所在的部门只能查询当前部门下的资产保养实施数据 -->
+	   AND a.assets_dept_id = #{user.deptId}
+	   <!-- 关键字模糊搜索设备名称与设备编码 -->
+	   <if test="q.keyword != null and q.keyword != ''">
+			and (a.assets_num like CONCAT('%',#{q.keyword},'%') OR a.assets_name LIKE CONCAT('%' ,#{q.keyword}, '%')) 
+	   </if>
+	   <!-- 按下次实施日期升序排序 -->
+	   ORDER BY i.next_implement_time ASC
+    </select>
+    
+</mapper>

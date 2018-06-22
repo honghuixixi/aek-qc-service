@@ -1,0 +1,73 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.aek.ebey.qc.mapper.MdTemplateItemMapper">
+
+	<!-- 通用查询映射结果 -->
+	<resultMap id="BaseResultMap" type="com.aek.ebey.qc.model.MdTemplateItem">
+		<id column="id" property="id" />
+		<result column="template_id" property="templateId" />
+		<result column="parent_id" property="parentId" />
+		<result column="name" property="name" />
+		<result column="remarks" property="remarks" />
+		<result column="input_type" property="inputType" />
+		<result column="columns" property="columns" />
+		<result column="cross_row" property="crossRow" />
+		<result column="type" property="type" />
+		<result column="select_type" property="selectType" />
+		<result column="sort" property="sort" />
+		<result column="create_by" property="createBy" />
+		<result column="create_time" property="createTime" />
+		<result column="update_by" property="updateBy" />
+		<result column="update_time" property="updateTime" />
+	</resultMap>
+
+    <!-- 通用查询结果列 -->
+    <sql id="Base_Column_List">
+        id, template_id AS templateId, parent_id AS parentId, name, remarks, input_type AS inputType, columns, cross_row AS crossRow, type, select_type AS selectType, sort, create_by AS createBy, create_time AS createTime, update_by AS updateBy, update_time AS updateTime
+    </sql>
+    
+    <select id="getMdSysTemplateItem" resultType="com.aek.ebey.qc.model.vo.MdTemplateItemVO">
+    	SELECT
+			id,
+			template_id templateId,
+			parent_id parentId,
+			`name`,
+			remarks,
+			input_type inputType,
+			`columns`,
+			cross_row crossRow,
+			type,
+			select_type selectType,
+			sort
+		FROM
+			md_template_item
+		WHERE
+			1 = 1
+		AND template_id = #{templateId}
+    </select>
+    
+    <select id="getMdSysTemplateItemList" resultType="com.aek.ebey.qc.model.bo.MdSysTemplateItemBO">
+    	SELECT
+			id sourceItemId,
+			parent_id parentId,
+			`name`,
+			remarks,
+			input_type inputType,
+			`columns`,
+			cross_row crossRow,
+			type,
+			select_type selectType,
+			sort,
+			create_by createBy,
+			create_time createTime,
+			update_by updateBy,
+			update_time updatetime
+		FROM
+			md_template_item
+		WHERE
+			1 = 1
+		AND template_id = #{templateId}
+    </select>
+    
+    
+</mapper>

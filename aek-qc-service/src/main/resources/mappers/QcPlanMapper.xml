@@ -1,0 +1,219 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.aek.ebey.qc.mapper.QcPlanMapper">
+
+	<!-- 通用查询映射结果 -->
+	<resultMap id="BaseResultMap" type="com.aek.ebey.qc.model.QcPlan">
+		<id column="id" property="id" />
+		<result column="tenant_id" property="tenantId" />
+		<result column="tenant_name" property="tenantName" />
+		<result column="name" property="name" />
+		<result column="plan_type" property="planType" />
+		<result column="plan_no" property="planNo" />
+		<result column="create_time" property="createTime" />
+		<result column="template_id" property="templateId" />
+		<result column="plan_cycle" property="planCycle" />
+		<result column="cycle_type" property="cycleType" />
+		<result column="first_time" property="firstTime" />
+		<result column="pre_time" property="preTime" />
+		<result column="next_time" property="nextTime" />
+		<result column="charge_id" property="chargeId" />
+		<result column="charge_name" property="chargeName" />
+		<result column="status" property="status" />
+		<result column="check_status" property="checkStatus" />
+		<result column="del_flag" property="delFlag" />
+		<result column="msg_status" property="msgStatus" />
+	</resultMap>
+
+    <!-- 通用查询结果列 -->
+    <sql id="Base_Column_List">
+        id, tenant_id AS tenantId, tenant_name AS tenantName, name, plan_type AS planType, plan_no AS planNo, create_time AS createTime, template_id AS templateId, plan_cycle AS planCycle, cycle_type AS cycleType, first_time AS firstTime, pre_time AS preTime, next_time AS nextTime, charge_id AS chargeId, charge_name AS chargeName, status, check_status AS checkStatus, del_flag AS delFlag, msg_status AS msgStatus
+    </sql>
+    
+    <select id="search" resultType="com.aek.ebey.qc.request.QcPlanResponse">
+    
+   	SELECT
+   	
+  		a.id,
+  		a.create_time AS createTime,
+  		a.plan_no AS planNo,
+  		a.name AS name,
+  		a.plan_type AS planType,
+  		a.plan_cycle AS planCycle, 
+  		a.cycle_type AS cycleType,
+  		a.first_time AS firstDate, 
+  		a.next_time AS nextDate,
+  		a.charge_name AS director,
+		a.STATUS AS STATUS
+	FROM 
+		qc_plan a WHERE a.del_flag=0
+		
+		<if test="user.tenantId != null">
+			and a.tenant_id = #{user.tenantId}
+		</if>
+		<if test="q.status != null and q.status !=''">
+			and a.status = #{q.status}
+		</if>
+		<if test="q.keyword != null and q.keyword != ''">
+			and (a.name like CONCAT('%',#{q.keyword},'%') OR a.plan_no LIKE CONCAT('%' ,#{q.keyword}, '%')) 
+		</if>
+		<!-- <if test="q.keyword != null and q.keyword !=''">
+			特殊字符处理
+			<if test='q.keyword == "%" or q.keyword == "[" or q.keyword == "[]" or q.keyword == "_"'>
+				and (a.name like CONCAT('%',#{q.keyword},'%') OR a.plan_no LIKE CONCAT('%' ,#{q.keyword}, '%')) 
+			</if> 
+			<if test='q.keyword != "%" and q.keyword != "[" and q.keyword != "[]" and q.keyword != "_"'>
+				and (a.name like CONCAT('%',#{q.keyword},'%') OR a.plan_no LIKE CONCAT('%' ,#{q.keyword}, '%')) 
+			</if> 
+		</if> -->
+		ORDER BY a.create_time DESC,a.id
+    
+    </select>
+    
+     <select id="searchImplement" resultType="com.aek.ebey.qc.request.QcImplementResponse">
+    
+   	SELECT
+   	
+  		a.id,
+  		a.create_time AS createTime,
+  		a.plan_no AS planNo,
+  		a.name AS name,
+  		a.plan_type AS planType,
+  		a.plan_cycle AS planCycle, 
+  		a.cycle_type AS cycleType,
+  		a.first_time AS firstDate, 
+  		a.pre_time AS preDate, 
+  		a.next_time AS nextDate,
+  		a.charge_name AS director,
+		a.check_status AS STATUS
+	FROM 
+		qc_plan a  where a.del_flag=0 
+		
+		<if test="user.id != null">
+			and a.charge_id = #{user.id}
+		</if>
+		
+		<if test="q.status != null and q.status !='' and q.status ==1">
+			and a.check_status = #{q.status} and a.status=1
+		</if>
+		<if test="q.status != null and q.status !='' and q.status ==2">
+			and a.check_status = #{q.status} 
+		</if>
+		<if test="q.keyword != null and q.keyword != ''">
+			and (a.name like CONCAT('%',#{q.keyword},'%')  OR a.plan_no LIKE CONCAT('%' ,#{q.keyword}, '%')) 
+		</if>
+		<!-- <if test="q.keyword != null and q.keyword !=''">
+			特殊字符处理
+			<if test='q.keyword == "%" or q.keyword == "[" or q.keyword == "[]" or q.keyword == "_"'>
+				and (a.name like CONCAT('%',#{q.keyword},'%') OR a.plan_no LIKE CONCAT('%' ,#{q.keyword}, '%')) 
+			</if> 
+			<if test='q.keyword != "%" and q.keyword != "[" and q.keyword != "[]" and q.keyword != "_"'>
+				and (a.name like CONCAT('%',#{q.keyword},'%') OR a.plan_no LIKE CONCAT('%' ,#{q.keyword}, '%')) 
+			</if> 
+		</if> -->
+		<if test="q.status != null  and q.status ==0">
+			and a.status=1 
+			or 
+			( a.check_status=2 
+			<if test="user.id != null">
+				and a.charge_id = #{user.id}
+			</if>
+			<if test="q.keyword != null and q.keyword != ''">
+			and (a.name like CONCAT('%',#{q.keyword},'%')  OR a.plan_no LIKE CONCAT('%' ,#{q.keyword}, '%')) 
+			</if>
+			<!-- <if test="q.keyword != null and q.keyword !=''">
+			特殊字符处理
+			<if test='q.keyword == "%" or q.keyword == "[" or q.keyword == "[]" or q.keyword == "_"'>
+				and (a.name like CONCAT('%',#{q.keyword},'%') OR a.plan_no LIKE CONCAT('%' ,#{q.keyword}, '%')) 
+			</if> 
+			<if test='q.keyword != "%" and q.keyword != "[" and q.keyword != "[]" and q.keyword != "_"'>
+				and (a.name like CONCAT('%',#{q.keyword},'%') OR a.plan_no LIKE CONCAT('%' ,#{q.keyword}, '%')) 
+			</if> 
+			</if> -->
+			)
+		</if>
+		ORDER BY a.check_status DESC,a.next_time ASC
+    
+    </select>
+    <update id="updateByQcPlan" parameterType="com.aek.ebey.qc.model.QcPlan">
+    UPDATE 
+    	qc_plan  
+    SET next_time = #{q.nextTime},   
+        status= #{q.status} 
+    WHERE id = #{q.id}   
+    
+    </update>
+    
+    <select id="selectList2" parameterType="com.aek.ebey.qc.query.Query" resultType="com.aek.ebey.qc.model.QcPlan">
+    	SELECT
+			id AS id,
+			tenant_id AS tenantId,
+			tenant_name AS tenantName,
+			`name` AS `name`,
+			plan_type AS planType,
+			plan_no AS planNo,
+			create_time AS createTime,
+			template_id AS templateId,
+			plan_cycle AS planCycle,
+			cycle_type AS cycleType,
+			first_time AS firstTime,
+			pre_time AS preTime,
+			next_time AS nextTime,
+			charge_id AS chargeId,
+			charge_name AS chargeName,
+			`status` AS `status`,
+			check_status AS checkStatus,
+			del_flag AS delFlag
+		FROM
+			qc_plan where del_flag=0 
+		<if test="q.tenantId != null and q.tenantId !=''">
+			and tenant_id = #{q.tenantId} 
+		</if>
+		<if test="q.name != null and q.name !=''">
+			and name = #{q.name} 
+		</if>
+    
+    </select>
+    
+     <!-- <select id="selcetByCondtion" resultType="com.aek.ebey.qc.request.QcOverView">
+      
+    
+    	select 
+    	p.tenant_id tenantId,
+    	count(1) total 
+    	from qc_plan p 
+    	where p.status=1 
+    	<if test="q.startDate != null and q.startDate != '' ">
+			<![CDATA[
+	   		and p.create_time  <=   #{q.endDate}
+	   		and p.create_time >=  #{q.startDate}
+	   		]]>
+		</if> 
+		<if test="q.startDate == null ">
+			 <![CDATA[
+    		and p.create_time >=DATE_SUB(CURDATE(),INTERVAL dayofyear(now())-1 DAY)
+    		and p.create_time <=date_sub(curdate(), INTERVAL 0 DAY)
+    	 ]]>
+		</if> 
+    	
+    	 GROUP BY p.tenant_id
+    	
+    </select> -->
+    
+    <!-- 获取年度巡检计划总数 -->
+    <select id="selcetByCondtion" resultType="com.aek.ebey.qc.request.QcOverView">
+    	SELECT 
+    		p.tenant_id tenantId,
+			date_sub(now(),interval 1 day) countDate,
+			now() countTime,
+			<if test="q.startDate != null and q.startDate != ''">
+				SUM(CASE WHEN p.status=1 AND p.create_time &lt;= #{q.endDate} AND p.create_time &gt;= #{q.startDate} THEN 1 ELSE 0 END) AS inspectionPlanTotalYear
+			</if>
+			<if test="q.startDate == null ">
+				SUM(CASE WHEN p.status=1 AND p.create_time &gt;= DATE_SUB(CURDATE(),INTERVAL dayofyear(now())-1 DAY) AND p.create_time &lt;= date_sub(curdate(), INTERVAL 0 DAY) THEN 1 ELSE 0 END) AS inspectionPlanTotalYear
+			</if>
+    	FROM qc_plan p 
+    	GROUP BY p.tenant_id
+    </select>
+    
+</mapper>

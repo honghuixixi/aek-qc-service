@@ -1,0 +1,50 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.aek.ebey.qc.mapper.PmImplementMapper">
+
+	<!-- 通用查询映射结果 -->
+	<resultMap id="BaseResultMap" type="com.aek.ebey.qc.model.PmImplement">
+		<id column="id" property="id" />
+		<result column="implement_id" property="implementId" />
+		<result column="report_no" property="reportNo" />
+		<result column="paln_id" property="palnId" />
+		<result column="actual_start_date" property="actualStartDate" />
+		<result column="actual_end_date" property="actualEndDate" />
+		<result column="plan_date" property="planDate" />
+		<result column="create_date" property="createDate" />
+		<result column="end_date" property="endDate" />
+		<result column="live" property="live" />
+		<result column="work_time" property="workTime" />
+		<result column="remarks" property="remarks" />
+		<result column="status" property="status" />
+		<result column="is_check" property="isCheck" />
+	</resultMap>
+
+    <!-- 通用查询结果列 -->
+    <sql id="Base_Column_List">
+        id, implement_id AS implementId, report_no AS reportNo, paln_id AS palnId, actual_start_date AS actualStartDate, actual_end_date AS actualEndDate, plan_date AS planDate, create_date AS createDate, end_date AS endDate, live, work_time AS workTime, remarks, status,  is_check AS isCheck
+    </sql>
+     <select id="getRecord" resultType="com.aek.ebey.qc.request.PmImplementRecord">
+    
+   	SELECT
+   	
+  		a.implement_id AS id,
+  		a.plan_date AS planDate,
+  		a.actual_start_date AS actualStartDate,
+  		a.actual_end_date AS actualEndDate
+	FROM 
+		pm_implement a WHERE a.status=2
+		
+		<if test="q.id != null and q.id !=''">
+			and a.paln_id = #{q.id}
+		</if>
+		ORDER BY a.plan_date DESC,a.implement_id
+    
+    </select>
+    
+    <select id="selectByUserId" resultType="int">
+    
+    select COUNT(p.id) from pm_implement p INNER JOIN pm_plan_implement i where p.implement_id =i.implement_id and p.is_check=1 and i.check_id=#{userid}
+    
+    </select>
+</mapper>

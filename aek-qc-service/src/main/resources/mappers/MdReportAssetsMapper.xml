@@ -1,0 +1,57 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.aek.ebey.qc.mapper.MdReportAssetsMapper">
+
+	<!-- 通用查询映射结果 -->
+	<resultMap id="BaseResultMap" type="com.aek.ebey.qc.model.MdReportAssets">
+		<id column="id" property="id" />
+		<result column="md_report_id" property="mdReportId" />
+		<result column="assets_id" property="assetsId" />
+		<result column="assets_name" property="assetsName" />
+		<result column="assets_num" property="assetsNum" />
+		<result column="assets_spec" property="assetsSpec" />
+		<result column="factory_num" property="factoryNum" />
+		<result column="factory_name" property="factoryName" />
+		<result column="dept_id" property="deptId" />
+		<result column="dept_name" property="deptName" />
+		<result column="del_flag" property="delFlag" />
+	</resultMap>
+
+    <!-- 通用查询结果列 -->
+    <sql id="Base_Column_List">
+        id, md_report_id AS mdReportId, assets_id AS assetsId, assets_name AS assetsName, assets_num AS assetsNum, assets_spec AS assetsSpec, factory_num AS factoryNum, factory_name AS factoryName, dept_id AS deptId, dept_name AS deptName,del_flag AS delFlag
+    </sql>
+    
+    <update id="updateReportAssets">
+    	UPDATE 
+    		md_report_assets
+		SET 
+			assets_id = #{mdAsset.assetsId},
+		    assets_name = #{mdAsset.assetsName},
+		    assets_num = #{mdAsset.assetsNum},
+		    assets_spec = #{mdAsset.assetsSpec},
+		    factory_num = #{mdAsset.factoryNum},
+		    factory_name = #{mdAsset.factoryName},
+		    dept_id = #{mdAsset.deptId},
+		    dept_name = #{mdAsset.deptName}
+		WHERE
+			del_flag = 0 AND md_report_id = #{mdAsset.mdReportId}
+    </update>
+    
+    <select id="getAssetsById" resultType="int">
+    	SELECT
+			COUNT(1)
+		FROM
+			md_report r
+		LEFT JOIN md_report_assets a ON r.id = a.md_report_id
+		WHERE
+			a.del_flag = 0
+		AND r.del_flag = 0	
+		AND assets_id = #{assetsId}
+		AND r.`status` IN (1, 2)
+		<if test="mdReportId != null">
+		AND r.id != #{mdReportId}
+		</if>
+    </select>
+    
+</mapper>

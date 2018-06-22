@@ -1,0 +1,101 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.aek.ebey.qc.mapper.MsAssetsMapper">
+
+	<!-- 通用查询映射结果 -->
+	<resultMap id="BaseResultMap" type="com.aek.ebey.qc.model.MsAssets">
+		<id column="id" property="id" />
+		<result column="tenant_id" property="tenantId" />
+		<result column="assets_id" property="assetsId" />
+		<result column="img_url" property="imgUrl" />
+		<result column="assets_name" property="assetsName" />
+		<result column="assets_dept_id" property="assetsDeptId" />
+		<result column="assets_dept_name" property="assetsDeptName" />
+		<result column="assets_spec" property="assetsSpec" />
+		<result column="assets_num" property="assetsNum" />
+		<result column="measure_num" property="measureNum" />
+		<result column="factory_id" property="factoryId" />
+		<result column="factory_name" property="factoryName" />
+		<result column="spl_id" property="splId" />
+		<result column="spl_name" property="splName" />
+		<result column="measure_type" property="measureType" />
+		<result column="measure_category" property="measureCategory" />
+		<result column="measure_cycle" property="measureCycle" />
+		<result column="next_check_time" property="nextCheckTime" />
+		<result column="check_mode" property="checkMode" />
+		<result column="charge_user_id" property="chargeUserId" />
+		<result column="charge_user_name" property="chargeUserName" />
+		<result column="remarks" property="remarks" />
+		<result column="status" property="status" />
+		<result column="assets_status" property="assetsStatus" />
+		<result column="assets_type" property="assetsType" />
+		<result column="measure_manage_type" property="measureManageType" />
+		<result column="create_time" property="createTime" />
+		<result column="del_flag" property="delFlag" />
+	</resultMap>
+
+    <!-- 通用查询结果列 -->
+    <sql id="Base_Column_List">
+        id, tenant_id AS tenantId, assets_num AS assetsNum,assets_id AS assetsId, img_url AS imgUrl, assets_name AS assetsName, assets_dept_id AS assetsDeptId, assets_dept_name AS assetsDeptName, assets_spec AS assetsSpec, measure_num AS measureNum, factory_id AS factoryId, factory_name AS factoryName, spl_id AS splId, spl_name AS splName, measure_type AS measureType, measure_category AS measureCategory, measure_cycle AS measureCycle, next_check_time AS nextCheckTime, check_mode AS checkMode, charge_user_id AS chargeUserId, charge_user_name AS chargeUserName, remarks, status, assets_status AS assetsStatus,assets_type AS assetsType, measure_manage_type AS measureManageType, create_time AS createTime, del_flag AS delFlag
+    </sql>
+    
+     <select id="search" resultType="com.aek.ebey.qc.request.MsAssetsResponse">
+    
+   	SELECT
+   	
+  		 <include refid="Base_Column_List"></include>
+	FROM 
+		ms_assets  WHERE del_flag=0
+		
+		<if test="user.tenantId != null">
+			and tenant_id = #{user.tenantId}
+		</if>
+		<if test="q.status != null and q.status !=''">
+			and status = #{q.status}
+		</if>
+		<if test="q.measureManageType != null and q.measureManageType !=''">
+			and measure_manage_type = #{q.measureManageType}
+		</if>
+		<if test="q.assetsDeptId != null and q.assetsDeptId !=''">
+			and assets_dept_id = #{q.assetsDeptId}
+		</if>
+		<if test="q.keyword != null and q.keyword != ''">
+			and (assets_name like CONCAT('%',#{q.keyword},'%') OR measure_num LIKE CONCAT('%' ,#{q.keyword}, '%')) 
+		</if>
+		<if test="q.startDate != null and q.startDate !=''">
+			<![CDATA[
+			and next_check_time >= #{q.startDate}
+			]]>
+		</if>
+		<if test="q.endDate != null and q.endDate !=''">
+			<![CDATA[
+			and next_check_time <= #{q.endDate}
+			]]>
+		</if>
+		ORDER BY next_check_time,id
+    
+    </select>
+    
+     <update id="updateMsAssets" parameterType="com.aek.ebey.qc.request.EditMsAssets">
+    UPDATE 
+    	ms_assets  m
+    <trim prefix="set" suffixOverrides=",">
+	  <if test="r.measureManageType != null">m.measure_manage_type=#{r.measureManageType},</if>
+	  <if test="r.measureType != null"> m.measure_type=#{r.measureType},</if>
+	  <if test="r.measureCategory != null">m.measure_category=#{r.measureCategory},</if>
+	  <if test="r.measureCycle != null">m.measure_cycle=#{r.measureCycle},</if>
+	  <if test="r.measureCycle == null">m.measure_cycle=null,</if>
+	  <if test="r.nextCheckTime != null">m.next_check_time=#{r.nextCheckTime},</if>
+	  <if test="r.nextCheckTime == null">m.next_check_time=null,</if>
+	  <if test="r.checkMode != null">m.check_mode=#{r.checkMode},</if>
+	  <if test="r.chargeUserId !=null">m.charge_user_id=#{r.chargeUserId},</if>
+	  <if test="r.chargeUserId ==null">m.charge_user_id=null,</if>
+	  <if test="r.chargeUserName !=null">m.charge_user_name=#{r.chargeUserName},</if>
+	   <if test="r.chargeUserName ==null">m.charge_user_name=null,</if>
+	  <if test="r.remarks !=null">m.remarks=#{r.remarks},</if>
+	  <if test="r.status !=null">m.status=#{r.status},</if>
+	 </trim>
+ 	WHERE m.id=#{r.id}
+    
+    </update>
+</mapper>

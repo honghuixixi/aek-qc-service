@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.aek.ebey.qc.mapper.MsCheckHistoryMapper">
+
+	<!-- 通用查询映射结果 -->
+	<resultMap id="BaseResultMap" type="com.aek.ebey.qc.model.MsCheckHistory">
+		<id column="id" property="id" />
+		<result column="measure_assets_id" property="measureAssetsId" />
+		<result column="tenant_id" property="tenantId" />
+		<result column="assets_id" property="assetsId" />
+		<result column="img_url" property="imgUrl" />
+		<result column="assets_name" property="assetsName" />
+		<result column="assets_dept_id" property="assetsDeptId" />
+		<result column="assets_dept_name" property="assetsDeptName" />
+		<result column="assets_num" property="assetsNum" />
+		<result column="assets_spec" property="assetsSpec" />
+		<result column="measure_num" property="measureNum" />
+		<result column="factory_id" property="factoryId" />
+		<result column="factory_name" property="factoryName" />
+		<result column="spl_id" property="splId" />
+		<result column="spl_name" property="splName" />
+		<result column="measure_type" property="measureType" />
+		<result column="measure_category" property="measureCategory" />
+		<result column="measure_cycle" property="measureCycle" />
+		<result column="next_check_time" property="nextCheckTime" />
+		<result column="check_mode" property="checkMode" />
+		<result column="charge_user_id" property="chargeUserId" />
+		<result column="charge_user_name" property="chargeUserName" />
+		<result column="remarks" property="remarks" />
+		<result column="assets_status" property="assetsStatus" />
+		<result column="assets_type" property="assetsType" />
+		<result column="measure_manage_type" property="measureManageType" />
+		<result column="create_time" property="createTime" />
+		<result column="submit_time" property="submitTime" />
+	</resultMap>
+
+    <!-- 通用查询结果列 -->
+    <sql id="Base_Column_List">
+        id, measure_assets_id AS measureAssetsId,  assets_num AS assetsNum,tenant_id AS tenantId, assets_id AS assetsId, img_url AS imgUrl, assets_name AS assetsName, assets_dept_id AS assetsDeptId, assets_dept_name AS assetsDeptName, assets_spec AS assetsSpec, measure_num AS measureNum, factory_id AS factoryId, factory_name AS factoryName, spl_id AS splId, spl_name AS splName, measure_type AS measureType, measure_category AS measureCategory, measure_cycle AS measureCycle, next_check_time AS nextCheckTime, check_mode AS checkMode, charge_user_id AS chargeUserId, charge_user_name AS chargeUserName, remarks,assets_status AS assetsStatus, assets_type AS assetsType, measure_manage_type AS measureManageType, create_time AS createTime, submit_time AS submitTime
+    </sql>
+</mapper>

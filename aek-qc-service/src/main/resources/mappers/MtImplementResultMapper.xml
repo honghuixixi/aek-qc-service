@@ -1,0 +1,106 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.aek.ebey.qc.mapper.MtImplementResultMapper">
+
+	<!-- 通用查询映射结果 -->
+	<resultMap id="BaseResultMap" type="com.aek.ebey.qc.model.MtImplementResult">
+		<id column="id" property="id" />
+		<result column="plan_implement_id" property="planImplementId" />
+		<result column="plan_id" property="planId" />
+		<result column="report_no" property="reportNo" />
+		<result column="actual_end_date" property="actualEndDate" />
+		<result column="end_date" property="endDate" />
+		<result column="assets_status" property="assetsStatus" />
+		<result column="remarks" property="remarks" />
+		<result column="status" property="status" />
+		<result column="implement_user_id" property="implementUserId"/>
+		<result column="implement_user_name" property="implementUserName"/>
+		<result column="administrator" property="administrator"/>
+	</resultMap>
+
+    <!-- 通用查询结果列 -->
+    <sql id="Base_Column_List">
+        id, plan_implement_id AS planImplementId, plan_id AS planId, report_no AS reportNo, 
+        actual_end_date AS actualEndDate, end_date AS endDate, 
+        assets_status AS assetsStatus, remarks, status,implement_user_id AS implementUserId,implement_user_name AS implementUserName,
+        administrator
+    </sql>
+    
+    <!-- 分页查询实施报告 -->
+    <select id="getMtImplementResultPage" resultType="com.aek.ebey.qc.request.MtImplementResultPageResponse">
+    	SELECT
+    		r.id,
+    		r.end_date AS implementDate,
+    		r.administrator,
+    		a.assets_id AS assetsId,
+    		a.assets_num AS assetsNum,
+    		a.hospital_assets_num AS hospitalAssetsNum,
+    		a.assets_name AS assetsName,
+    		a.assets_spec AS assetsSpec,
+    		a.assets_dept_id AS assetsDeptId,
+    		a.assets_dept_name AS assetsDeptName,
+    		p.rate
+    	FROM mt_implement_result r
+    	LEFT JOIN mt_plan p on r.plan_id = p.id
+    	LEFT JOIN mt_plan_assets a on p.id = a.plan_id
+    	WHERE p.tenant_id = #{user.tenantId}
+    	<!-- 按实施开始时间、结束时间查询 -->
+    	<if test="q.startImplementDate != null and q.startImplementDate !=''">
+			<![CDATA[
+			AND r.end_date >= #{q.startImplementDate}
+			]]>
+		</if>
+		<if test="q.endImplementDate != null and q.endImplementDate !=''">
+			<![CDATA[
+			AND r.end_date <= #{q.endImplementDate}
+			]]>
+		</if>
+		<!-- 部门查询 -->
+		<if test="q.deptId != null and q.deptId !=''">
+			AND a.assets_dept_id = #{q.deptId}
+		</if>
+		<!-- 关键字模糊搜索设备名称与设备编码 -->
+	   <if test="q.keyword != null and q.keyword != ''">
+			AND (a.assets_num like CONCAT('%',#{q.keyword},'%') OR a.assets_name LIKE CONCAT('%' ,#{q.keyword}, '%')) 
+	   </if>
+	   <!-- 排序 -->
+	   ORDER BY r.end_date DESC
+    </select>
+    
+    <select id="getMtRecordPage" resultMap="BaseResultMap">
+    	SELECT
+    		*
+    	FROM mt_implement_result
+    	WHERE plan_id = #{q.planId}
+    	<if test="q.startDate != null and q.startDate !=''">
+			<![CDATA[
+			AND end_date >= #{q.startDate}
+			]]>
+		</if>
+		<if test="q.endDate != null and q.endDate !=''">
+			<![CDATA[
+			AND end_date <= #{q.endDate}
+			]]>
+		</if>	
+    </select>
+    
+    
+    <select id="getMplementResultList" resultMap="BaseResultMap">
+    	SELECT
+    		*
+    	FROM mt_implement_result
+    	WHERE plan_id = #{q.planId}
+    	<if test="q.startDate != null and q.startDate !=''">
+			<![CDATA[
+			AND end_date >= #{q.startDate}
+			]]>
+		</if>
+		<if test="q.endDate != null and q.endDate !=''">
+			<![CDATA[
+			AND end_date <= #{q.endDate}
+			]]>
+		</if>	
+    </select>
+    
+    
+</mapper>

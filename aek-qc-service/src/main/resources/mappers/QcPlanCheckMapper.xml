@@ -1,0 +1,66 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.aek.ebey.qc.mapper.QcPlanCheckMapper">
+
+	<!-- 通用查询映射结果 -->
+	<resultMap id="BaseResultMap" type="com.aek.ebey.qc.model.QcPlanCheck">
+		<id column="id" property="id" />
+		<result column="tenant_id" property="tenantId" />
+		<result column="paln_id" property="palnId" />
+		<result column="implement_id" property="implementId" />
+		<result column="user_id" property="userId" />
+		<result column="user_name" property="userName" />
+		<result column="status" property="status" />
+		<result column="create_by" property="createBy" />
+		<result column="create_time" property="createTime" />
+		<result column="update_by" property="updateBy" />
+		<result column="update_time" property="updateTime" />
+		<result column="del_flag" property="delFlag" />
+	</resultMap>
+
+    <!-- 通用查询结果列 -->
+    <sql id="Base_Column_List">
+        id, tenant_id AS tenantId, paln_id AS palnId, implement_id AS implementId, user_id AS userId, user_name AS userName, status, create_by AS createBy, create_time AS createTime, update_by AS updateBy, update_time AS updateTime, del_flag AS delFlag
+    </sql>
+    <select id="search" resultType="com.aek.ebey.qc.request.QcPlanCheckResponse">
+    	SELECT
+  			i.id,
+			i.report_no reportNo,
+			p.`name` planName,
+			p.plan_type planType,
+			p.plan_cycle planCycle,
+			p.cycle_type cycleType,
+			i.actual_end_date actualEndDate,
+			i.charge_name AS chargeName,
+			c.`status`
+  
+	FROM 
+		qc_plan_check c
+		INNER JOIN qc_implement i ON c.implement_id = i.id
+		INNER JOIN qc_plan p ON c.paln_id = p.id where c.del_flag=0
+		<if test="user.tenantId != null">
+			and c.tenant_id = #{user.tenantId}
+		</if>
+		<if test="q.userId != null">
+			and c.user_id = #{q.userId}
+		</if>
+		<if test="q.status != null and q.status !=''">
+			and c.status = #{q.status}
+		</if>
+		<if test="q.startTime != null and q.startTime !=''">
+			<![CDATA[
+			and i.actual_end_date >= #{q.startTime}
+			]]>
+		</if>
+		<if test="q.endTime != null and q.endTime !=''">
+			<![CDATA[
+			and i.actual_end_date <= #{q.endTime}
+			]]>
+		</if>
+		<if test="q.keyword != null and q.keyword != ''">
+			and (p.name like CONCAT('%',#{q.keyword},'%') OR i.report_no LIKE CONCAT('%' ,#{q.keyword}, '%')) 
+		</if>
+		ORDER BY c.status,i.actual_end_date DESC
+    
+    </select>
+</mapper>

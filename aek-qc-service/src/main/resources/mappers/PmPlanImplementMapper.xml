@@ -1,0 +1,143 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.aek.ebey.qc.mapper.PmPlanImplementMapper">
+
+	<!-- 通用查询映射结果 -->
+	<resultMap id="BaseResultMap" type="com.aek.ebey.qc.model.PmPlanImplement">
+		<id column="id" property="id" />
+		<result column="implement_id" property="implementId" />
+		<result column="plan_id" property="planId" />
+		<result column="assets_id" property="assetsId" />
+		<result column="assets_num" property="assetsNum" />
+		<result column="assets_name" property="assetsName" />
+		<result column="assets_spec" property="assetsSpec" />
+		<result column="assets_dept_id" property="assetsDeptId" />
+		<result column="assets_dept_name" property="assetsDeptName" />
+		<result column="assets_status" property="assetsStatus" />
+		<result column="assets_status_text" property="assetsStatusText" />
+		<result column="tenant_id" property="tenantId" />
+		<result column="tenant_name" property="tenantName" />
+		<result column="create_time" property="createTime" />
+		<result column="template_id" property="templateId" />
+		<result column="cycle" property="cycle" />
+		<result column="level" property="level" />
+		<result column="first_time" property="firstTime" />
+		<result column="pre_time" property="preTime" />
+		<result column="next_time" property="nextTime" />
+		<result column="charge_id" property="chargeId" />
+		<result column="charge_name" property="chargeName" />
+		<result column="check_id" property="checkId" />
+		<result column="check_name" property="checkName" />
+	</resultMap>
+
+    <!-- 通用查询结果列 -->
+    <sql id="Base_Column_List">
+        id, implement_id AS implementId, plan_id AS planId, assets_id AS assetsId, assets_num AS assetsNum, assets_name AS assetsName, assets_spec AS assetsSpec, assets_dept_id AS assetsDeptId, assets_dept_name AS assetsDeptName, assets_status AS assetsStatus, assets_status_text AS assetsStatusText, tenant_id AS tenantId, tenant_name AS tenantName, create_time AS createTime, template_id AS templateId, cycle, level, first_time AS firstTime, pre_time AS preTime, next_time AS nextTime, charge_id AS chargeId, charge_name AS chargeName, check_id AS checkId, check_name AS checkName
+    </sql>
+    
+    <select id="search" resultType="com.aek.ebey.qc.request.PmImplementResponse">
+    
+   	SELECT
+  		a.implement_id AS id,
+  		a.assets_num AS no,
+  		b.report_no AS reportNo,
+  		a.assets_name AS name,
+  		a.assets_spec AS model,
+  		a.assets_dept_name AS departmentName,
+  		a.cycle AS cycle, 
+  		a.charge_name AS directorName,
+  		b.actual_end_date AS submitDate,
+  		b.is_check AS status
+  
+	FROM 
+		pm_plan_implement a inner join pm_implement b  on a.implement_id=b.implement_id
+		
+		<if test="user.tenantId != null">
+			and a.tenant_id = #{user.tenantId}
+		</if>
+		<if test="q.status != null and q.status !=''">
+			and b.is_check = #{q.status}
+		</if>
+		<if test="q.userId != null and q.userId !=''">
+			and a.check_id = #{q.userId}
+		</if>
+		<if test="q.startDate != null and q.startDate !=''">
+			<![CDATA[
+			and b.actual_end_date >= #{q.startDate}
+			]]>
+		</if>
+		<if test="q.endDate != null and q.endDate !=''">
+			<![CDATA[
+			and b.actual_end_date <= #{q.endDate}
+			]]>
+		</if>
+		<if test="q.departmentId != null and q.departmentId !=''">
+			and a.assets_dept_id = #{q.departmentId}
+		</if>
+		<if test="q.keyword != null and q.keyword != ''">
+			and (a.assets_num like CONCAT('%',#{q.keyword},'%') OR a.assets_name LIKE CONCAT('%' ,#{q.keyword}, '%')) 
+		</if>
+		<if test="q.orderStatus ==1">
+			ORDER BY b.is_check,b.end_date DESC
+		</if>
+		<if test="q.orderStatus ==2">
+			ORDER BY b.end_date DESC,a.implement_id
+		</if>
+		
+    
+    </select>
+    
+    <!-- 年度pm实施总数以及年度pm执行率 -->
+    <select id="selectByCondtion" resultType="com.aek.ebey.qc.request.PmOverView">
+		SELECT 
+	   		tmp.tenantId,
+	   		tmp.pmImplementTotalYear,
+			(
+				CASE WHEN (tmp.pmImplementTotalYear is not null and tmp.pmImplementTotalYear != 0) 
+				  	 THEN FORMAT((tmp.pmImplementTotalYearFact/tmp.pmImplementTotalYear)*100,2) ELSE 0 END
+			) as pmRateYear
+		FROM   
+		(
+			SELECT 
+		       p.tenant_id tenantId, 
+		       count(1) pmImplementTotalYear ,
+		       SUM(<![CDATA[CASE WHEN date(i.actual_start_date) <= date(p.next_time) THEN 1 ELSE 0 END]]>) as pmImplementTotalYearFact
+		    FROM pm_plan_implement p INNER JOIN pm_implement i  
+		    WHERE p.implement_id=i.implement_id 
+	        <if test="q.startDate == null">
+				<![CDATA[
+	         	 AND p.create_time <= date_sub(curdate(),interval 0 day)
+	         	 AND p.create_time >= DATE_SUB(CURDATE(),INTERVAL dayofyear(now())-1 DAY)     
+	       		]]>
+			</if>
+			GROUP BY p.tenant_id
+		) tmp
+    </select>
+    
+    <!-- 获取月度pm资产数 -->
+    <select id="selectCountPMAssets" resultType="com.aek.ebey.qc.request.PmMounth">
+	   	SELECT 
+		   	p.tenant_id tenantId, 
+		   	date_format(date_sub(now(),interval 1 day),'%Y-%m') countMonth,
+		   	count(1) pmAssetsTotal,
+		   	now() countTime,
+		   	now() updateTime
+	   	FROM pm_plan_implement p INNER JOIN pm_implement i  
+	   	WHERE p.implement_id=i.implement_id 
+	   	<if test="q.startDate != null and q.startDate != '' ">
+			<![CDATA[
+	   		AND p.create_time  <=   #{q.endDate}
+	   		AND p.create_time >=  #{q.startDate}
+	   		]]>
+		</if>
+		<if test="q.startDate == null">
+			<![CDATA[
+	   	 	AND p.create_time <= date_sub(curdate(),interval 0 day)
+	   		AND p.create_time >= date_add(curdate(),interval -day(curdate())+1 day)
+		 ]]>
+		</if>
+	   	GROUP BY p.tenant_id
+    </select>
+    
+    
+</mapper>

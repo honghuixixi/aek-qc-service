@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.aek.ebey.qc.mapper.PmAnswersOptionMapper">
+
+	<!-- 通用查询映射结果 -->
+	<resultMap id="BaseResultMap" type="com.aek.ebey.qc.model.PmAnswersOption">
+		<id column="id" property="id" />
+		<result column="implement_id" property="implementId" />
+		<result column="answer_id" property="answerId" />
+		<result column="option_id" property="optionId" />
+		<result column="option_name" property="optionName" />
+		<result column="answer" property="answer" />
+		<result column="remarks" property="remarks" />
+		<result column="measure" property="measure" />
+		<result column="setnum" property="setnum" />
+	</resultMap>
+
+    <!-- 通用查询结果列 -->
+    <sql id="Base_Column_List">
+        id, implement_id AS implementId, answer_id AS answerId, option_id AS optionId, option_name AS optionName, answer, remarks, measure, setnum
+    </sql>
+</mapper>

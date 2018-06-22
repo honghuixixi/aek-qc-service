@@ -1,0 +1,152 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.aek.ebey.qc.mapper.QcAssetsMapper">
+
+	<!-- 通用查询映射结果 -->
+	<resultMap id="BaseResultMap" type="com.aek.ebey.qc.model.QcAssets">
+		<id column="id" property="id" />
+		<result column="implement_id" property="implementId" />
+		<result column="tenant_id" property="tenantId" />
+		<result column="assets_id" property="assetsId" />
+		<result column="img_url" property="imgUrl" />
+		<result column="assets_name" property="assetsName" />
+		<result column="remarks" property="remarks" />
+		<result column="assets_dept_id" property="assetsDeptId" />
+		<result column="assets_dept_name" property="assetsDeptName" />
+		<result column="assets_spec" property="assetsSpec" />
+		<result column="assets_num" property="assetsNum" />
+		<result column="status" property="status" />
+		<result column="result" property="result" />
+		<result column="result_status" property="resultStatus" />
+		<result column="im_status" property="imStatus" />
+		<result column="create_time" property="createTime" />
+	</resultMap>
+
+    <!-- 通用查询结果列 -->
+    <sql id="Base_Column_List">
+        id, implement_id AS implementId,tenant_id AS tenantId, assets_id AS assetsId, img_url AS imgUrl,assets_name AS assetsName, remarks, assets_dept_id AS assetsDeptId, assets_dept_name AS assetsDeptName, assets_spec AS assetsSpec, assets_num AS assetsNum,status,result_status AS resultStatus,im_status AS imStatus,create_time AS createTime, result
+    </sql>
+    <!-- 批量插入 -->
+     <insert id ="insertBatch" parameterType="java.util.List" >
+           insert into qc_assets
+           (implement_id, assets_id, assets_name, remarks,assets_dept_id,assets_dept_name,assets_spec,assets_num,status)
+           values
+            <foreach collection ="list" item="item" index= "index" separator =",">
+                (
+                #{item.implementId}, #{item.assetsId},
+                #{item.assetsName}, #{item.remarks},
+                #{item.assetsDeptId}, #{item.assetsDeptName},
+                #{item.assetsSpec},#{item.assetsNum},
+                #{item.status}
+                )
+            </foreach >
+     </insert >
+      <select id="searchQcAssets" resultType="com.aek.ebey.qc.request.QcAssetsResponse">
+    
+   	SELECT
+   	
+   		a.remarks AS remarks,
+  		a.assets_name AS name,
+		a.assets_dept_name AS department,
+		a.assets_spec AS model,
+		a.assets_num AS equipmentNo,
+		a.assets_id AS id,
+		a.result AS answers
+	FROM 
+		qc_assets a WHERE 1=1
+		
+		
+		<if test="q.id != null and q.id !=''">
+			and a.implement_id = #{q.id}
+		</if>
+		ORDER BY a.assets_dept_id ASC,a.status ASC,a.assets_num DESC
+    
+    </select>
+    
+     <select id="selectByimplementId" resultType="com.aek.ebey.qc.request.QcAssetsResponse">
+    
+   	SELECT
+   	
+   		a.remarks AS remarks,
+  		a.assets_name AS name,
+		a.assets_dept_name AS department,
+		a.assets_spec AS model,
+		a.assets_num AS equipmentNo,
+		a.assets_id AS id,
+		a.result AS answers
+	FROM 
+		qc_assets a WHERE  a.implement_id = #{id}
+		
+		ORDER BY a.assets_dept_id ASC,a.status ASC,a.assets_num DESC
+    
+    </select>
+    <select id="searchContentByImplementId" resultType="com.aek.ebey.qc.request.QcAssetsResponse">
+    
+   	SELECT
+   	
+   		a.remarks AS remarks,
+  		a.assets_name AS name,
+		a.assets_dept_name AS department,
+		a.assets_spec AS model,
+		a.assets_num AS equipmentNo,
+		a.assets_id AS id,
+		a.result AS answers
+	FROM 
+		qc_assets a WHERE 1=1
+		
+		
+		<if test="q.id != null and q.id !=''">
+			and a.implement_id = #{q.id}
+		</if>
+		ORDER BY a.assets_dept_id ASC,a.status ASC,a.assets_num DESC
+    
+    </select>
+    
+       <select id="searchQcAssets2" resultType="com.aek.ebey.qc.request.QcAssetsResponse2">
+    
+   	SELECT
+   	
+   		a.assets_id AS id,
+   		a.img_url AS imgUrl,
+  		a.assets_name AS name,
+		a.assets_dept_name AS deptName,
+		a.assets_num AS assetNo
+	FROM 
+		qc_assets a WHERE 1=1
+		
+		
+		<if test="q.id != null and q.id !=''">
+			and a.implement_id = #{q.id}
+		</if>
+		
+		<if test="q.status != null and q.status !=''">
+			and a.im_status = #{q.status}
+		</if>
+		
+		<if test="q.keyword != null and q.keyword != ''">
+			and (a.assets_name like CONCAT('%',#{q.keyword},'%') OR a.assets_num LIKE CONCAT('%' ,#{q.keyword}, '%')) 
+		</if>
+		<if test="q.status != null and q.status !='' and q.status==1">
+			ORDER BY a.assets_num DESC
+		</if>
+		<if test="q.status != null and q.status !='' and q.status==2">
+			ORDER BY a.create_time DESC,a.assets_id
+		</if>
+		
+    
+    </select>
+    
+     <select id="check" resultType="int">
+    
+   	SELECT
+   		a.im_status
+	FROM 
+		qc_assets a WHERE a.implement_id = #{q.id} and a.assets_id = #{q.assetId}
+		
+    </select >
+    <update id="submitQcImAssets" parameterType="com.aek.ebey.qc.request.QcImAssets3">
+    update qc_assets set result_status=#{q.status},result=#{q.answers},remarks=#{q.remarks},create_time=now(),im_status=#{q.imAtatus} where implement_id=#{q.id} and assets_id=#{q.assetId}
+    
+    </update>
+    
+</mapper>

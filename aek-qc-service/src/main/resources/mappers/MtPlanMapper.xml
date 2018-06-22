@@ -1,0 +1,58 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.aek.ebey.qc.mapper.MtPlanMapper">
+
+	<!-- 通用查询映射结果 -->
+	<resultMap id="BaseResultMap" type="com.aek.ebey.qc.model.MtPlan">
+		<id column="id" property="id" />
+		<result column="tenant_id" property="tenantId" />
+		<result column="tenant_name" property="tenantName" />
+		<result column="plan_template_id" property="planTemplateId" />
+		<result column="template_id" property="templateId" />
+		<result column="rate" property="rate" />
+		<result column="administrator" property="administrator" />
+		<result column="last_implement_time" property="lastImplementTime" />
+		<result column="next_implement_time" property="nextImplementTime" />
+		<result column="enable" property="enable" />
+		<result column="create_time" property="createTime" />
+		<result column="update_time" property="updateTime" />
+	</resultMap>
+
+    <!-- 通用查询结果列 -->
+    <sql id="Base_Column_List">
+        id, tenant_id AS tenantId, tenant_name AS tenantName, plan_template_id AS planTemplateId, template_id AS templateId, rate, administrator, last_implement_time AS lastImplementTime, next_implement_time AS nextImplementTime, enable, create_time AS createTime, update_time AS updateTime
+    </sql>
+    
+    <select id="getPlanByPage" resultType="com.aek.ebey.qc.model.vo.MtPlanResponseVO">
+    	SELECT
+			p.id id,
+			CASE WHEN p.rate=1 THEN '每天' ELSE '每周' END rate,
+			p.next_implement_time nextImplementTime,
+			p.create_time createTime,
+			p.administrator,
+			CASE WHEN p.enable=1 THEN '启用' ELSE '停用' END enable,
+			a.assets_name assetsName,
+			a.assets_num assetsNum,
+			a.assets_spec assetsSpec,
+			a.factory_num factoryNum,
+			a.assets_dept_id assetsDeptId,
+			a.assets_dept_name assetsDeptName
+		FROM
+			mt_plan p
+		LEFT JOIN mt_plan_assets a ON p.id = a.plan_id
+		WHERE
+			p.tenant_id=#{user.tenantId} 
+		<if test="query.keyword !=null and query.keyword !=''">
+			AND (a.assets_name LIKE CONCAT('%',#{query.keyword},'%') OR a.assets_num LIKE CONCAT('%',#{query.keyword},'%'))
+		</if>
+		<if test="query.deptId !=null">
+			AND a.assets_dept_id=#{query.deptId}
+		</if>	
+		<if test="query.enable !=null">
+			AND p.enable=#{query.enable}
+		</if>	
+		ORDER BY
+			p.id DESC
+    </select>
+    
+</mapper>

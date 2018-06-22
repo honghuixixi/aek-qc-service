@@ -1,0 +1,88 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.aek.ebey.qc.mapper.PmPlanMapper">
+
+<!-- 通用查询映射结果 -->
+	<resultMap id="BaseResultMap" type="com.aek.ebey.qc.model.PmPlan">
+		<id column="id" property="id" />
+		<result column="assets_id" property="assetsId" />
+		<result column="assets_num" property="assetsNum" />
+		<result column="assets_name" property="assetsName" />
+		<result column="assets_spec" property="assetsSpec" />
+		<result column="assets_dept_id" property="assetsDeptId" />
+		<result column="assets_dept_name" property="assetsDeptName" />
+		<result column="assets_status" property="assetsStatus" />
+		<result column="assets_status_text" property="assetsStatusText" />
+		<result column="tenant_id" property="tenantId" />
+		<result column="tenant_name" property="tenantName" />
+		<result column="create_time" property="createTime" />
+		<result column="template_id" property="templateId" />
+		<result column="pre_template_id" property="preTemplateId" />
+		<result column="cycle" property="cycle" />
+		<result column="level" property="level" />
+		<result column="first_time" property="firstTime" />
+		<result column="pre_time" property="preTime" />
+		<result column="next_time" property="nextTime" />
+		<result column="charge_id" property="chargeId" />
+		<result column="charge_name" property="chargeName" />
+		<result column="check_id" property="checkId" />
+		<result column="check_name" property="checkName" />
+		<result column="status" property="status" />
+		<result column="check_status" property="checkStatus" />
+		<result column="del_flag" property="delFlag" />
+	</resultMap>
+
+    <!-- 通用查询结果列 -->
+    <sql id="Base_Column_List">
+        id, assets_id AS assetsId, assets_num AS assetsNum, assets_name AS assetsName, assets_spec AS assetsSpec, assets_dept_id AS assetsDeptId, assets_dept_name AS assetsDeptName, assets_status AS assetsStatus, assets_status_text AS assetsStatusText, tenant_id AS tenantId, tenant_name AS tenantName, create_time AS createTime, template_id AS templateId, pre_template_id AS preTemplateId, cycle, level, first_time AS firstTime, pre_time AS preTime, next_time AS nextTime, charge_id AS chargeId, charge_name AS chargeName, check_id AS checkId, check_name AS checkName, status, check_status AS checkStatus, del_flag AS delFlag
+    </sql>
+    
+    <select id="search" resultType="com.aek.ebey.qc.request.PmPlanResponse">
+    
+   	SELECT
+  		a.id,
+  		a.assets_num AS no,
+  		a.assets_name AS name,
+  		a.assets_spec AS model,
+  		a.assets_dept_name AS departmentName,
+  		a.cycle AS cycle, 
+  		a.level AS level,
+  		a.charge_name AS directorName,
+  		a.first_time AS firstDate, 
+  		a.next_time AS nextDate,
+		a.STATUS AS STATUS
+	FROM 
+		pm_plan a WHERE a.del_flag=0
+		
+		<if test="user.tenantId != null">
+			and a.tenant_id = #{user.tenantId}
+		</if>
+		<if test="q.status != null and q.status !=''">
+			and a.status = #{q.status}
+		</if>
+		<if test="q.departmentId != null and q.departmentId !=''">
+			and a.assets_dept_id = #{q.departmentId}
+		</if>
+		<if test="q.keyword != null and q.keyword != ''">
+			and (a.assets_num like CONCAT('%',#{q.keyword},'%') OR a.assets_name LIKE CONCAT('%' ,#{q.keyword}, '%')) 
+		</if>
+		ORDER BY a.create_time DESC,a.id
+    
+    </select>
+    
+     <select id="selcetByCondtion" resultType="com.aek.ebey.qc.request.PmOverView">
+	     <![CDATA[
+	    	SELECT 
+    			p.tenant_id tenantId,
+    			date_sub(now(),interval 1 day) countDate,
+       			now() countTime,
+				SUM(CASE WHEN p.status=1
+							  AND p.create_time >= DATE_SUB(CURDATE(),INTERVAL dayofyear(now())-1 DAY) 
+							  AND p.create_time <= date_sub(curdate(), INTERVAL 0 DAY)
+						 THEN 1 ELSE 0 END
+				) as pmPlanTotalYear
+    		FROM pm_plan p 
+    	 	GROUP BY p.tenant_id
+	     ]]>
+     </select>
+</mapper>

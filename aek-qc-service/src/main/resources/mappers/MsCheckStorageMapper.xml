@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.aek.ebey.qc.mapper.MsCheckStorageMapper">
+
+	<!-- 通用查询映射结果 -->
+	<resultMap id="BaseResultMap" type="com.aek.ebey.qc.model.MsCheckStorage">
+		<id column="id" property="id" />
+		<result column="ms_check_id" property="msCheckId" />
+		<result column="check_mode" property="checkMode" />
+		<result column="certificate_num" property="certificateNum" />
+		<result column="current_check_time" property="currentCheckTime" />
+		<result column="next_check_time" property="nextCheckTime" />
+		<result column="check_form" property="checkForm" />
+		<result column="check_result_status" property="checkResultStatus" />
+		<result column="check_organization" property="checkOrganization" />
+		<result column="check_fee" property="checkFee" />
+		<result column="check_user_name" property="checkUserName" />
+		<result column="auditor" property="auditor" />
+		<result column="remarks" property="remarks" />
+		<result column="files" property="files" />
+		<result column="create_time" property="createTime" />
+	</resultMap>
+
+    <!-- 通用查询结果列 -->
+    <sql id="Base_Column_List">
+        id, ms_check_id AS msCheckId, check_mode AS checkMode, certificate_num AS certificateNum, current_check_time AS currentCheckTime, next_check_time AS nextCheckTime, check_form AS checkForm, check_result_status AS checkResultStatus, check_organization AS checkOrganization, check_fee AS checkFee, check_user_name AS checkUserName, auditor, remarks, files, create_time AS createTime
+    </sql>
+</mapper>
